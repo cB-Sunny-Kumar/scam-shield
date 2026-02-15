@@ -1,0 +1,23 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Case {
+  id        Int      @id @default(autoincrement())
+  text      String
+  riskLevel String
+  score     Int
+  flags     String   // Comma-separated or JSON string
+  status    String   @default("Pending") // Pending, Reviewed, Action Taken
+  notes     String?
+  firDraft  String?
+  createdAt DateTime @default(now())
+}

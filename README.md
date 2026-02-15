@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Scam Shield
+**Protecting the Vulnerable from Digital Fraud with AI-Powered Detection.**
 
-## Getting Started
+## 🚨 Problem Statement
+Cyber-fraud is escalating at an alarming rate, with "Digital Arrest" scams and sophisticated phishing attacks targeting vulnerable citizens. Victims often lose their life savings to criminals impersonating law enforcement or bank officials, creating a desperate need for a real-time, accessible defense mechanism.
 
-First, run the development server:
+## 🛡️ The Solution
+**Scam Shield** is an intelligent defense platform that works two-fold:
+1.  **For Citizens**: An AI-powered analysis engine that instantly detects fraud patterns in messages (SMS, WhatsApp, Email).
+2.  **For Authorities**: A secure **Department Portal** that aggregates reported cases, categorizes risks, and provides actionable intelligence to stop scams before they inevitably escalate.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Core Features
+*   **Scam Pattern Recognition**: Advanced weighted scoring system detects "Digital Arrest", "Lottery", and "KYC Blocked" scams with high precision.
+*   **Risk Scoring**: Automatically categorizes threats as Low, Medium, High, or **Critical** (e.g., Fake Police + Money Demand).
+*   **FIR Generation**: Auto-generates a draft First Information Report (FIR) for victims to file complaints immediately.
+*   **Admin Analytics**: A Department Portal with a sticky navbar, searchable case table, and interactive charts for fraud trend analysis.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Follow these steps to set up the project locally:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Install Dependencies**:
+    ```bash
+    npm install
+    ```
 
-## Learn More
+2.  **Initialize Database**:
+    ```bash
+    npx prisma db push
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+3.  **Run Development Server**:
+    ```bash
+    npm run dev
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔑 Credentials
 
-## Deploy on Vercel
+To access the **Department Portal** (Admin Dashboard):
+-   **URL**: [http://localhost:3000/admin](http://localhost:3000/admin)
+-   **Access Key**: `admin123`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠️ Tech Stack
+-   **Framework**: Next.js 15 (App Router)
+-   **Styling**: Tailwind CSS (Dark Glassmorphism Theme)
+-   **Database**: SQLite with Prisma ORM
+-   **Visualization**: Recharts
+-   **Language**: TypeScript
