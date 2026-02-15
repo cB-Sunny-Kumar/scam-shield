@@ -1,172 +1,216 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { analyzeTextAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { ShieldAlert, ShieldCheck, AlertTriangle, FileText, Send, Copy, AlertOctagon } from "lucide-react";
+import { RadialProgress } from "@/components/ui/radial-progress";
+import { SkeletonScanner } from "@/components/ui/skeleton-scanner";
+import { ShieldAlert, ShieldCheck, AlertTriangle, FileText, Send, Copy, AlertOctagon, Cpu, Zap, Fingerprint } from "lucide-react";
 import { type FraudAnalysisResult } from "@/lib/fraud-engine";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<FraudAnalysisResult | null>(null);
+
+  // Fake scanning progress bar effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+      setProgress(0);
+      interval = setInterval(() => {
+        setProgress((prev) => (prev >= 95 ? 95 : prev + (100 - prev) * 0.1));
+      }, 300);
+    } else {
+      setProgress(0);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleAnalyze = async () => {
     if (!input) return;
     setLoading(true);
+    setResult(null);
     try {
       const formData = new FormData();
       formData.append("text", input);
       const data = await analyzeTextAction(formData);
-      setResult(data);
+      // Wait a bit to show the pulse effect
+      setTimeout(() => {
+        setResult(data);
+        setLoading(false);
+      }, 1500);
     } catch (error) {
       console.error("Analysis failed:", error);
-    } finally {
       setLoading(false);
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // Could add toast here
   };
 
   return (
-    <div className="min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)] flex flex-col items-center">
-      <main className="w-full max-w-4xl flex flex-col gap-8 mt-8">
+    <div className="flex flex-col gap-12 max-w-5xl mx-auto pb-20">
+      {/* Hero Header */}
+      <header className="flex flex-col gap-4 animate-fade-in">
+        <div className="flex items-center gap-3 text-primary">
+          <Fingerprint className="w-10 h-10" />
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic">Scam Shield <span className="text-white/20 not-italic">v2.0</span></h1>
+        </div>
+        <p className="text-muted-foreground text-lg max-w-xl">
+          Advanced AI-powered fraud detection system monitor. Paste suspicious communications below for immediate neural analysis.
+        </p>
+      </header>
 
-        {/* Input Section */}
-        <section className="w-full">
-          <Card className="border-primary/20 shadow-[0_0_50px_-12px_rgba(var(--primary),0.3)]">
-            <CardHeader>
-              <CardTitle>Analyze Suspicious Text</CardTitle>
-              <CardDescription>Paste the content of the WhatsApp message, Email, or SMS you received.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Paste the suspicious text here..."
-                className="min-h-[200px] text-base resize-none"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button
-                onClick={handleAnalyze}
-                className="w-full sm:w-auto gap-2"
-                disabled={loading || !input}
-                variant="neon"
-              >
-                {loading ? (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" /> Analyze for Fraud
-                  </>
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-        </section>
+      {/* Main Scanner Input */}
+      <section className="animate-fade-in" style={{ animationDelay: "100ms" }}>
+        <Card className="glass-panel border-primary/20 relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-full h-1 bg-primary/20 group-focus-within:bg-primary/50 transition-colors" />
 
-        {/* Results Section */}
-        {result && (
-          <section className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in transition-all duration-500">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-primary" /> Analysis Input Terminal
+              </CardTitle>
+              <CardDescription>Target: SMS, WhatsApp, Email, or Web Content</CardDescription>
+            </div>
+            <Zap className={cn("w-6 h-6 text-primary/50 transition-all duration-500", loading && "animate-pulse text-primary")} />
+          </CardHeader>
 
-            {/* Risk Score Card */}
-            <Card className="md:col-span-2 overflow-hidden relative">
-              <div className={`absolute top-0 left-0 w-full h-1 ${result.riskLevel === 'Critical' ? 'bg-red-500' :
-                result.riskLevel === 'High' ? 'bg-orange-500' :
-                  result.riskLevel === 'Medium' ? 'bg-yellow-500' : 'bg-green-500'
-                }`} />
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xl">Risk Analysis</CardTitle>
-                <Badge variant={
-                  result.riskLevel === 'Critical' ? 'destructive' :
-                    result.riskLevel === 'High' ? 'danger' :
-                      result.riskLevel === 'Medium' ? 'warning' : 'safe'
-                } className="text-sm px-3 py-1">
-                  {result.riskLevel} Risk
-                </Badge>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">Scam Probability Score</span>
-                        <span className="text-sm font-bold">{result.score}/100</span>
-                      </div>
-                      <Progress value={result.score} className="h-3" />
-                    </div>
-                    <div className={`p-4 rounded-full border-4 ${result.riskLevel === 'Critical' ? 'border-red-500 text-red-500 bg-red-500/10' :
-                      result.riskLevel === 'High' ? 'border-orange-500 text-orange-500 bg-orange-500/10' :
-                        result.riskLevel === 'Medium' ? 'border-yellow-500 text-yellow-500 bg-yellow-500/10' : 'border-green-500 text-green-500 bg-green-500/10'
-                      }`}>
-                      {result.riskLevel === 'Critical' || result.riskLevel === 'High' ? (
-                        <AlertOctagon className="w-8 h-8" />
-                      ) : result.riskLevel === 'Medium' ? (
-                        <AlertTriangle className="w-8 h-8" />
-                      ) : (
-                        <ShieldCheck className="w-8 h-8" />
-                      )}
-                    </div>
+          <CardContent className="relative">
+            <Textarea
+              placeholder="System awaiting data injection..."
+              className="min-h-[180px] text-base resize-none bg-black/20 border-white/5 focus-visible:ring-primary/50 scan-text leading-relaxed"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+            />
+            {loading && (
+              <div className="absolute inset-x-6 bottom-4 h-1 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary shadow-[0_0_15px_rgba(16,185,129,0.8)] transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            )}
+          </CardContent>
+
+          <CardFooter className="flex justify-between items-center bg-white/5 py-4">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+              <div className={cn("w-2 h-2 rounded-full", loading ? "bg-yellow-500 animate-pulse" : "bg-emerald-500")} />
+              {loading ? "Neural Core Processing" : "Neural core active"}
+            </div>
+            <Button
+              onClick={handleAnalyze}
+              className="px-8 gap-2 font-bold uppercase tracking-wider h-12 box-glow"
+              disabled={loading || !input}
+              variant="neon"
+            >
+              {loading ? "Running Neural Scan..." : "Initiate Analysis"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </section>
+
+      {/* Results HUD */}
+      <div className="min-h-[400px]">
+        {loading ? (
+          <SkeletonScanner />
+        ) : result ? (
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in transition-all duration-700">
+            {/* Risk HUD Card */}
+            <Card className="md:col-span-2 glass-panel border-white/10 relative overflow-hidden">
+              <div className={cn(
+                "absolute inset-0 bg-gradient-to-r opacity-10 pointer-events-none",
+                result.riskLevel === 'Critical' ? 'from-red-600' :
+                  result.riskLevel === 'High' ? 'from-orange-600' :
+                    result.riskLevel === 'Medium' ? 'from-yellow-600' : 'from-emerald-600'
+              )} />
+
+              <CardContent className="pt-8 flex flex-col md:flex-row items-center gap-12">
+                <div className="relative">
+                  <RadialProgress value={result.score} riskLevel={result.riskLevel} size={160} strokeWidth={12} />
+                  <div className={cn(
+                    "absolute -top-2 -right-2 p-2 rounded-xl glass-panel text-[10px] font-black uppercase tracking-tighter border-white/10",
+                    result.riskLevel === 'Critical' ? 'text-red-500 border-red-500/50 underline' :
+                      result.riskLevel === 'High' ? 'text-orange-500 border-orange-500/50' :
+                        result.riskLevel === 'Medium' ? 'text-yellow-500 border-yellow-500/50' : 'text-emerald-500 border-emerald-500/50'
+                  )}>
+                    STATUS: {result.riskLevel}
                   </div>
+                </div>
+
+                <div className="flex-1 space-y-4">
+                  <h3 className="text-2xl font-black uppercase italic flex items-center gap-3">
+                    {result.riskLevel === 'Critical' || result.riskLevel === 'High' ? (
+                      <AlertOctagon className="w-8 h-8 text-red-500 animate-pulse" />
+                    ) : (
+                      <ShieldCheck className="w-8 h-8 text-emerald-500" />
+                    )}
+                    Threat Intelligence Report
+                  </h3>
+                  <p className="text-muted-foreground scan-text text-sm leading-relaxed border-l-2 border-primary/20 pl-4 py-2 bg-white/5 rounded-r-lg">
+                    Detected {result.riskLevel.toUpperCase()} probability of fraud in source transmission. System recommends immediate protective action.
+                  </p>
 
                   {result.flags.length > 0 && (
-                    <div className="p-4 rounded-lg bg-secondary/30 border border-border">
-                      <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                        Detected Red Flags:
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {result.flags.map((flag, i) => (
-                          <Badge key={i} variant="outline" className="bg-background/40 border-primary/20">
-                            {flag}
-                          </Badge>
-                        ))}
-                      </div>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {result.flags.map((flag, i) => (
+                        <Badge key={i} variant="secondary" className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors py-1 px-3 rounded-md text-[10px] uppercase font-bold tracking-widest text-[#10b981]">
+                          {flag}
+                        </Badge>
+                      ))}
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* FIR Draft Card */}
+            {/* FIR Transmission Data */}
             {result.firDraft && (
-              <Card className="md:col-span-2 glass-card">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-primary" />
-                    <CardTitle>Generated FIR Draft</CardTitle>
+              <Card className="md:col-span-2 glass-panel border-white/5 bg-black/40">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                      <FileText className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm uppercase font-black tracking-widest">Compromise Report Draft (FIR)</CardTitle>
+                      <CardDescription className="text-[10px] uppercase tracking-wider">Draft ready for authority submission</CardDescription>
+                    </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(result.firDraft!)}>
-                    <Copy className="w-4 h-4 mr-2" /> Copy Draft
+                  <Button variant="ghost" size="sm" className="text-xs font-bold hover:bg-primary/20 hover:text-primary transition-all rounded-xl border border-white/5" onClick={() => copyToClipboard(result.firDraft!)}>
+                    <Copy className="w-4 h-4 mr-2" /> COPY DATA STRINGS
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <pre className="whitespace-pre-wrap font-mono text-sm p-4 rounded-lg bg-black/40 border border-border overflow-auto max-h-[400px]">
+                  <pre className="whitespace-pre-wrap scan-text text-xs p-6 rounded-xl bg-black/60 border border-white/5 text-primary/80 max-h-[400px] overflow-auto leading-relaxed shadow-inner">
                     {result.firDraft}
                   </pre>
                 </CardContent>
-                <CardFooter>
-                  <p className="text-xs text-muted-foreground">
-                    * This is an AI-generated draft. Please review and verify all details before submitting to authorities.
+                <CardFooter className="pt-0">
+                  <p className="text-[9px] text-muted-foreground uppercase font-medium tracking-tight bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                    * AI SYSTEM GENERATED PROXY DATA. REVIEW REQUIRED BEFORE OFFICIAL LEGAL FILING.
                   </p>
                 </CardFooter>
               </Card>
             )}
-
           </section>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground animate-fade-in">
+            <div className="w-16 h-16 rounded-full border-2 border-dashed border-white/10 mb-6 flex items-center justify-center opacity-40">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <p className="text-sm uppercase font-black tracking-widest opacity-40">System awaiting analysis request</p>
+          </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
+

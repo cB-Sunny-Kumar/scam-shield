@@ -1,9 +1,10 @@
 "use server";
 
-import { analyzeFraudText, FraudAnalysisResult } from "@/lib/fraud-engine";
+import { analyzeWithAI, FraudAnalysisResult } from "@/lib/fraud-engine";
 import { db } from "@/lib/db";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function analyzeTextAction(formData: FormData): Promise<FraudAnalysisResult> {
     const text = formData.get("text") as string;
@@ -12,10 +13,7 @@ export async function analyzeTextAction(formData: FormData): Promise<FraudAnalys
         throw new Error("Invalid input");
     }
 
-    // Simulate AI delay for effect
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    const result = analyzeFraudText(text);
+    const result = await analyzeWithAI(text);
 
     // Save to Database
     try {
@@ -63,30 +61,47 @@ export async function loginAction(formData: FormData) {
 export async function logoutAction() {
     (await cookies()).delete("admin_session");
     revalidatePath("/admin");
+    redirect("/admin/login");
 }
 
 export async function getDashboardStats() {
-    const totalCases = await db.case.count();
-    const criticalCases = await db.case.count({ where: { riskLevel: "Critical" } });
-    const highCases = await db.case.count({ where: { riskLevel: "High" } });
-    const mediumCases = await db.case.count({ where: { riskLevel: "Medium" } });
-    const lowCases = await db.case.count({ where: { riskLevel: "Low" } });
-    const pendingCases = await db.case.count({ where: { status: "Pending" } });
+    try {
+        console.log("[getDashboardStats] db initialized:", !!db);
+        console.log("[getDashboardStats] DATABASE_URL:", process.env.DATABASE_URL ? "set" : "NOT SET");
 
-    const recentCases = await db.case.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-    });
+        const totalCases = await db.case.count();
+        const criticalCases = await db.case.count({ where: { riskLevel: "Critical" } });
+        const highCases = await db.case.count({ where: { riskLevel: "High" } });
+        const mediumCases = await db.case.count({ where: { riskLevel: "Medium" } });
+        const lowCases = await db.case.count({ where: { riskLevel: "Low" } });
+        const pendingCases = await db.case.count({ where: { status: "Pending" } });
 
-    return {
-        totalCases,
-        criticalCases,
-        highCases,
-        mediumCases,
-        lowCases,
-        pendingCases,
-        recentCases,
-    };
+        const recentCases = await db.case.findMany({
+            take: 5,
+            orderBy: { createdAt: "desc" },
+        });
+
+        return {
+            totalCases,
+            criticalCases,
+            highCases,
+            mediumCases,
+            lowCases,
+            pendingCases,
+            recentCases,
+        };
+    } catch (error) {
+        console.error("[getDashboardStats] Database failure:", error);
+        return {
+            totalCases: 0,
+            criticalCases: 0,
+            highCases: 0,
+            mediumCases: 0,
+            lowCases: 0,
+            pendingCases: 0,
+            recentCases: [],
+        };
+    }
 }
 
 export async function getCases() {

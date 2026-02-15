@@ -24,17 +24,27 @@ Follow these steps to set up the project locally:
     npm install
     ```
 
-2.  **Initialize Database**:
+2.  **Environment Setup**:
+    - Copy the `.env.example` file to create a `.env` file.
+    - Add your **Google Gemini API Key** to the `GEMINI_API_KEY` variable. You can get a free key at [Google AI Studio](https://aistudio.google.com/app/apikey).
+    - Ensure your `DATABASE_URL` is set (defaults to `file:./dev.db`).
+
+3.  **Initialize Database**:
     ```bash
     npx prisma db push
     ```
 
-3.  **Run Development Server**:
+4.  **Run Development Server**:
     ```bash
     npm run dev
     ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+## 🛡️ Security
+
+> [!IMPORTANT]
+> **API Key Protection**: Never commit your `.env` file to version control. This project includes `.env` in the `.gitignore` to prevent accidental exposure. If you suspect your API key has been compromised, revoke it immediately via the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
 
 ## 🔑 Credentials
 
@@ -43,8 +53,9 @@ To access the **Department Portal** (Admin Dashboard):
 -   **Access Key**: `admin123`
 
 ## 🛠️ Tech Stack
--   **Framework**: Next.js 15 (App Router)
--   **Styling**: Tailwind CSS (Dark Glassmorphism Theme)
--   **Database**: SQLite with Prisma ORM
+-   **Framework**: Next.js 16 (App Router + Turbopack)
+-   **AI**: Google Gemini 2.0 Flash
+-   **Styling**: Tailwind CSS 4.0 (Dark Glassmorphism)
+-   **Database**: SQLite with Prisma ORM (Singleton Pattern)
 -   **Visualization**: Recharts
--   **Language**: TypeScript
+-   **Language**: TypeScript 5.0

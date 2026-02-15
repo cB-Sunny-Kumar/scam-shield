@@ -126,3 +126,23 @@ I request you to register my complaint and take action against this number/sourc
         firDraft,
     };
 }
+
+/**
+ * AI-powered analysis using Google Gemini, with keyword-based fallback.
+ */
+export async function analyzeWithAI(text: string): Promise<FraudAnalysisResult> {
+    // If no API key, use keyword engine directly
+    if (!process.env.GEMINI_API_KEY) {
+        console.warn("GEMINI_API_KEY not set — using keyword-based analysis.");
+        return analyzeFraudText(text);
+    }
+
+    try {
+        const { analyzeWithGemini } = await import("./gemini");
+        return await analyzeWithGemini(text);
+    } catch (error) {
+        console.error("Gemini API failed, falling back to keyword engine:", error);
+        return analyzeFraudText(text);
+    }
+}
+
